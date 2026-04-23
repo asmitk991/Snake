@@ -1,0 +1,11 @@
+# Compiled Binaries
+snake
+
+# Object Files
+*.o
+
+# macOS Metadata
+.DS_Store
+
+# Debug Symbols (Mac)
+*.dSYM/
