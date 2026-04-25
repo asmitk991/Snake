@@ -33,6 +33,7 @@ int my_div(int a, int b) {
     return neg ? -res : res;
 }
 
+
 /* get the remainder using our custom div/mul */
 int my_mod(int a, int b) {
     if (b == 0) return 0;
