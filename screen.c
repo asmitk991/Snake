@@ -1,68 +1,94 @@
 #include "screen.h"
 #include "string.h"
-#include <stdio.h>   /* allowed: terminal I/O */
+#include <stdio.h>
 
-/* stuff for terminal control */
-
-static void put_escape(const char *seq) {
-    putchar('\033');
-    putchar('[');
+/* Low-level escape helpers */
+static void put_digits(int n) {
+    char buf[8];
+    my_itoa(n, buf);
     int i = 0;
-    while (seq[i] != '\0') { putchar(seq[i]); i++; }
+    while (buf[i]) { putchar(buf[i]); i++; }
+}
+
+/* Enter alternate screen to prevent scrolling */
+void screen_alt_enter(void) {
+    fputs("\033[?1049h", stdout);
+    fputs("\033[H",      stdout);
+    fputs("\033[2J",     stdout);
+    fflush(stdout);
+}
+
+void screen_alt_exit(void) {
+    fputs("\033[?1049l", stdout);
+    fflush(stdout);
 }
 
 void screen_clear(void) {
-    put_escape("2J");       /* wipe the screen */
-    put_escape("H");        /* cursor to top left */
+    /* Clear alternate screen */
+    fputs("\033[H",  stdout);
+    fputs("\033[2J", stdout);
+    fputs("\033[H",  stdout);
 }
 
-/* jump to specific row/col */
 void screen_move(int row, int col) {
-    /* build the sequence manually */
-    char rbuf[8], cbuf[8];
-    my_itoa(row, rbuf);
-    my_itoa(col, cbuf);
-
-    putchar('\033');
-    putchar('[');
-    int i = 0;
-    while (rbuf[i]) { putchar(rbuf[i]); i++; }
-    putchar(';');
-    i = 0;
-    while (cbuf[i]) { putchar(cbuf[i]); i++; }
+    /* Move cursor */
+    putchar('\033'); putchar('[');
+    put_digits(row); putchar(';'); put_digits(col);
     putchar('H');
 }
 
-void screen_putchar(char c) {
-    putchar(c);
-}
+void screen_putchar(char c)       { putchar(c); }
 
 void screen_putstr(const char *s) {
     int i = 0;
-    while (s[i] != '\0') { putchar(s[i]); i++; }
+    while (s[i]) { putchar(s[i]); i++; }
 }
 
-/* draw the outer box */
+void screen_flush(void) { fflush(stdout); }
+
+/* Color */
+void screen_color(int attr, int fg) {
+    /* Set color attributes */
+    putchar('\033'); putchar('[');
+    put_digits(attr); putchar(';'); put_digits(fg);
+    putchar('m');
+}
+
+void screen_color_reset(void) {
+    putchar('\033'); putchar('['); putchar('0'); putchar('m');
+}
+
+void screen_putchar_colored(char c, int attr, int fg) {
+    screen_color(attr, fg);
+    putchar(c);
+    screen_color_reset();
+}
+
+void screen_putstr_colored(const char *s, int attr, int fg) {
+    screen_color(attr, fg);
+    screen_putstr(s);
+    screen_color_reset();
+}
+
+/* Border */
 void screen_draw_border(int rows, int cols) {
-    /* Top edge */
-    screen_move(1, 1);
-    putchar('+');
+    screen_color(COL_BOLD, COL_WHITE);
+
+    /* Top */
+    screen_move(2, 1); putchar('+');
     for (int c = 1; c < cols - 1; c++) putchar('-');
     putchar('+');
 
-    /* Side edges */
-    for (int r = 2; r < rows; r++) {
-        screen_move(r, 1);       putchar('|');
-        screen_move(r, cols);    putchar('|');
+    /* Sides */
+    for (int r = 3; r < rows; r++) {
+        screen_move(r, 1);    putchar('|');
+        screen_move(r, cols); putchar('|');
     }
 
-    /* Bottom edge */
-    screen_move(rows, 1);
-    putchar('+');
+    /* Bottom */
+    screen_move(rows, 1); putchar('+');
     for (int c = 1; c < cols - 1; c++) putchar('-');
     putchar('+');
-}
 
-void screen_flush(void) {
-    fflush(stdout);
+    screen_color_reset();
 }
