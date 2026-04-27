@@ -2,29 +2,24 @@
 #include "math.h"
 #include <stdlib.h>   /* allowed: only for the initial sbrk-like block */
 
-/*
- * This is our fake RAM. We grab one big chunk from the system at the start,
- * then manage it ourselves so we don't have to call real malloc anymore.
- */
-
+/* Virtual memory management */
 static unsigned char *vram = 0;
 
-/* this sits before every piece of memory we give out */
+/* Block header for memory chunks */
 typedef struct BlockHeader {
-    int  size;          /* how big this chunk is */
-    int  free;          /* 1 if it's empty, 0 if used */
+    int  size;
+    int  free;
     struct BlockHeader *next;
 } BlockHeader;
 
 #define HEADER_SIZE  ((int)sizeof(BlockHeader))
 
-static BlockHeader *heap_head = 0;  /* start of free-list */
+static BlockHeader *heap_head = 0;
 
 void mem_init(void) {
-    /* Allocate the one big pool via stdlib (the Hardware Abstraction Exception) */
     vram = (unsigned char *)malloc(VRAM_SIZE);
 
-    /* Initialise the entire pool as a single free block */
+    /* Initialize pool */
     heap_head = (BlockHeader *)vram;
     heap_head->size = VRAM_SIZE - HEADER_SIZE;
     heap_head->free = 1;
@@ -38,7 +33,7 @@ void *my_alloc(int size) {
     BlockHeader *cur = heap_head;
     while (cur) {
         if (cur->free && cur->size >= size) {
-            /* Split the block if there's enough room for a new header + 1 byte */
+            /* Split block if there's enough room */
             int leftover = cur->size - size - HEADER_SIZE;
             if (leftover > 0) {
                 BlockHeader *newblk = (BlockHeader *)((unsigned char *)cur + HEADER_SIZE + size);
@@ -53,7 +48,7 @@ void *my_alloc(int size) {
         }
         cur = cur->next;
     }
-    return 0;  /* out of virtual memory */
+    return 0;
 }
 
 /* Mark block free and merge adjacent free blocks (coalescing) */

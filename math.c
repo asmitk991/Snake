@@ -1,6 +1,6 @@
 #include "math.h"
 
-/* Fast multiplication using bit-shifts (Russian Peasant algorithm) */
+/* Fast multiplication using bit-shifts */
 int my_mul(int a, int b) {
     int res = 0;
     int neg = 0;
@@ -8,14 +8,14 @@ int my_mul(int a, int b) {
     if (b < 0) { b = -b; neg = !neg; }
 
     while (b > 0) {
-        if (b & 1) res += a;  /* if b is odd, add a to result */
-        a <<= 1;              /* double a */
-        b >>= 1;              /* halve b  */
+        if (b & 1) res += a;
+        a <<= 1;
+        b >>= 1;
     }
     return neg ? -res : res;
 }
 
-/* Fast division using bit-shifts (Binary Long Division) */
+/* Fast division using bit-shifts */
 int my_div(int a, int b) {
     if (b == 0) return 0;
     int res = 0;
@@ -33,27 +33,26 @@ int my_div(int a, int b) {
     return neg ? -res : res;
 }
 
-
-/* get the remainder using our custom div/mul */
+/* Get remainder */
 int my_mod(int a, int b) {
     if (b == 0) return 0;
     int quotient = my_div(a, b);
     return a - my_mul(quotient, b);
 }
 
-/* make numbers positive */
+/* Absolute value */
 int my_abs(int a) {
     return a < 0 ? -a : a;
 }
 
-/* force it to stay in range */
+/* Clamp value within bounds */
 int my_clamp(int val, int min, int max) {
     if (val < min) return min;
     if (val > max) return max;
     return val;
 }
 
-/* see if it's inside some bounds */
+/* Check if value is within bounds */
 int my_inbounds(int val, int min, int max) {
     return (val >= min && val < max) ? 1 : 0;
 }

@@ -25,7 +25,7 @@ int my_strcmp(const char *a, const char *b) {
     return a[i] - b[i];
 }
 
-/* convert a number to a string */
+/* Convert integer to string */
 void my_itoa(int val, char *buf) {
     int i = 0;
     int neg = 0;
@@ -39,7 +39,6 @@ void my_itoa(int val, char *buf) {
         neg = 1;
         val = -val;
     }
-    /* fill it backwards first */
     char tmp[20];
     int  len = 0;
     while (val > 0) {
@@ -47,7 +46,6 @@ void my_itoa(int val, char *buf) {
         val = my_div(val, 10);
     }
     if (neg) buf[i++] = '-';
-    /* flip it the right way */
     for (int j = len - 1; j >= 0; j--) buf[i++] = tmp[j];
     buf[i] = '\0';
 }
